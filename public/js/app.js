@@ -1,11 +1,13 @@
 // Initialize Socket.IO connection
 const socket = io();
 
-// Initialize xterm
+// Initialize xterm with memory optimizations
 const terminal = new Terminal({
   cursorBlink: true,
   fontSize: 14,
   fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  scrollback: 1000, // Limit scrollback to save memory
+  convertEol: true,
   theme: {
     background: '#000000',
     foreground: '#ffffff',
@@ -124,13 +126,21 @@ socket.on('ssh-error', (data) => {
 });
 
 socket.on('ssh-output', (data) => {
-  terminal.write(data);
+  // Memory optimization: limit data processing
+  if (typeof data === 'string' && data.length < 10000) {
+    terminal.write(data);
+  }
 });
 
-// Terminal input handler
+// Terminal input handler with throttling
+let inputThrottle = null;
 terminal.onData((data) => {
-  if (isConnected) {
-    socket.emit('ssh-input', data);
+  if (isConnected && data.length < 100) {
+    // Basic throttling to prevent spam
+    if (inputThrottle) clearTimeout(inputThrottle);
+    inputThrottle = setTimeout(() => {
+      socket.emit('ssh-input', data);
+    }, 10);
   }
 });
 
