@@ -13,9 +13,6 @@ Online SSH terminal hosted using Render. Connect to any SSH server through your 
 - 📱 Responsive design that works on all devices
 - 🚀 Easy deployment to Render
 - ⚡ Real-time communication with Socket.IO
-- 🔧 Memory-optimized for free hosting tiers (512MB RAM limit)
-- 🛡️ Built-in rate limiting and connection management
-- ⚡ Automatic cleanup of idle connections
 
 ## Installation
 
@@ -71,31 +68,6 @@ This application is configured for easy deployment to Render:
 
 Your KeySocket instance will be live at your Render URL!
 
-## Memory Optimization for Free Hosting
-
-This application is heavily optimized for free hosting tiers with limited memory (512MB):
-
-### Server Optimizations:
-- **Connection Limits**: Max 8 concurrent connections (configurable via `MAX_CONNECTIONS`)
-- **Memory Monitoring**: Automatic garbage collection when memory usage exceeds 400MB
-- **Buffer Management**: 8KB output buffer per connection with circular buffer implementation
-- **Idle Cleanup**: Automatic disconnection of idle sessions after 3 minutes
-- **Rate Limiting**: Max 2 SSH sessions per IP address
-- **Resource Cleanup**: Automatic cleanup of SSH streams and client connections
-
-### Node.js Flags:
-- `--max-old-space-size=450`: Limits heap size to 450MB (safe margin for 512MB limit)
-- `--gc-interval=100`: More frequent garbage collection
-- `--expose-gc`: Enables manual garbage collection during high memory usage
-
-### Configuration:
-Copy `.env.example` to `.env` to customize settings:
-```bash
-MAX_CONNECTIONS=8          # Maximum concurrent connections
-CONNECTION_TIMEOUT=180000  # 3 minutes idle timeout
-MAX_OUTPUT_BUFFER_SIZE=8192 # 8KB buffer per connection
-```
-
 ## Security Considerations
 
 ⚠️ **Important Security Notes:**
@@ -103,12 +75,11 @@ MAX_OUTPUT_BUFFER_SIZE=8192 # 8KB buffer per connection
 - This application is designed for personal use or trusted environments
 - SSH credentials are not stored on the server
 - All connections are established in real-time and closed when the browser disconnects
-- Built-in rate limiting prevents abuse (2 connections per IP)
-- Automatic cleanup prevents resource exhaustion
 - For production use, consider adding:
   - HTTPS/TLS encryption
   - Authentication/authorization for the web interface
-  - Enhanced logging and monitoring
+  - Rate limiting
+  - Connection logging and monitoring
 
 ## Technologies Used
 

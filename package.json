@@ -4,8 +4,8 @@
   "description": "Online SSH terminal hosted using Render.",
   "main": "server.js",
   "scripts": {
-    "start": "node --max-old-space-size=480 --gc-interval=100 --expose-gc server.js",
-    "dev": "node --max-old-space-size=480 --gc-interval=100 --expose-gc server.js",
+    "start": "node server.js",
+    "dev": "node server.js",
     "postinstall": "mkdir -p public/lib/xterm public/lib/addon-fit && cp -r node_modules/@xterm/xterm/css node_modules/@xterm/xterm/lib public/lib/xterm/ && cp -r node_modules/@xterm/addon-fit/lib public/lib/addon-fit/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
