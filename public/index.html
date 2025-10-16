@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeySocket - Online SSH Terminal</title>
+  <link rel="stylesheet" href="/node_modules/@xterm/xterm/css/xterm.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    #connection-form {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 0.95em;
+    }
+
+    input, textarea {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: monospace;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      flex: 1;
+    }
+
+    .btn-connect:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-disconnect {
+      background: #f44336;
+      color: white;
+      flex: 1;
+    }
+
+    .btn-disconnect:hover:not(:disabled) {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status.visible {
+      display: flex;
+    }
+
+    .status.connected {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 2px solid #81c784;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      border: 2px solid #e57373;
+    }
+
+    .status.disconnected {
+      background: #fff3e0;
+      color: #e65100;
+      border: 2px solid #ffb74d;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status.connected .status-indicator {
+      background: #2e7d32;
+    }
+
+    .status.error .status-indicator {
+      background: #c62828;
+    }
+
+    .status.disconnected .status-indicator {
+      background: #e65100;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    #terminal-container {
+      display: none;
+      background: #000;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 20px;
+    }
+
+    #terminal-container.visible {
+      display: block;
+    }
+
+    .auth-method {
+      display: grid;
+      gap: 20px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .radio-group input[type="radio"] {
+      width: auto;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 KeySocket</h1>
+      <p>Secure Online SSH Terminal</p>
+    </div>
+
+    <div class="content">
+      <form id="connection-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="host">Host / IP Address *</label>
+            <input type="text" id="host" placeholder="example.com or 192.168.1.1" required>
+          </div>
+          <div class="form-group">
+            <label for="port">Port</label>
+            <input type="number" id="port" placeholder="22" value="22">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username *</label>
+          <input type="text" id="username" placeholder="root" required>
+        </div>
+
+        <div class="form-group auth-method">
+          <label>Authentication Method</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="auth-method" value="password" checked>
+              Password
+            </label>
+            <label>
+              <input type="radio" name="auth-method" value="privatekey">
+              Private Key
+            </label>
+          </div>
+
+          <div id="password-field">
+            <input type="password" id="password" placeholder="Enter password">
+          </div>
+
+          <div id="privatekey-field" style="display: none;">
+            <textarea id="privatekey" placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"></textarea>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn-connect" id="connect-btn">Connect to Server</button>
+          <button type="button" class="btn-disconnect" id="disconnect-btn" disabled>Disconnect</button>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+
+      <div id="terminal-container"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/node_modules/@xterm/xterm/lib/xterm.js"></script>
+  <script src="/node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
