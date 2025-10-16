@@ -1,0 +1,22 @@
+{
+  "name": "keysocket",
+  "version": "1.0.0",
+  "description": "Online SSH terminal hosted using Render.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "postinstall": "mkdir -p public/lib/xterm public/lib/addon-fit && cp -r node_modules/@xterm/xterm/css node_modules/@xterm/xterm/lib public/lib/xterm/ && cp -r node_modules/@xterm/addon-fit/lib public/lib/addon-fit/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "ssh2": "^1.17.0"
+  }
+}
